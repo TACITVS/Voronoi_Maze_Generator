@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Voronoi Maze Generator screenshot illustration</title>
+  <desc id="desc">Stylized representation of the Voronoi Maze Generator web UI showing control panel on the left and a colorful maze on the right.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#0b1220" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#1f2937" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="canvas" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <style>
+      text {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+      }
+    </style>
+  </defs>
+  <rect width="960" height="540" fill="#0f172a" rx="24" />
+  <rect x="16" y="16" width="928" height="508" rx="20" fill="url(#bg)" />
+  <rect x="48" y="56" width="256" height="428" rx="18" fill="url(#panel)" stroke="#3b82f6" stroke-width="2" opacity="0.95" />
+  <rect x="328" y="56" width="584" height="428" rx="18" fill="url(#canvas)" stroke="#1f2937" stroke-width="2" />
+  <text x="72" y="108" fill="#f8fafc" font-size="24" font-weight="600">Voronoi Maze</text>
+  <text x="72" y="142" fill="#94a3b8" font-size="18">Generator</text>
+  <text x="72" y="182" fill="#e2e8f0" font-size="16">Cell count</text>
+  <rect x="68" y="194" width="204" height="32" rx="8" fill="#0f172a" stroke="#1e3a8a" />
+  <text x="84" y="215" fill="#cbd5f5" font-size="16">128</text>
+  <text x="72" y="252" fill="#e2e8f0" font-size="16">Canvas size</text>
+  <rect x="68" y="264" width="204" height="32" rx="8" fill="#0f172a" stroke="#1e3a8a" />
+  <text x="84" y="285" fill="#cbd5f5" font-size="16">900 × 600</text>
+  <text x="72" y="322" fill="#e2e8f0" font-size="16">Seed</text>
+  <rect x="68" y="334" width="204" height="32" rx="8" fill="#0f172a" stroke="#1e3a8a" />
+  <text x="84" y="355" fill="#94a3b8" font-size="16">optional</text>
+  <rect x="68" y="388" width="204" height="46" rx="10" fill="#2563eb" />
+  <text x="106" y="417" fill="#f8fafc" font-size="18" font-weight="600">Generate</text>
+  <rect x="68" y="444" width="204" height="46" rx="10" fill="#1d4ed8" opacity="0.8" />
+  <text x="110" y="473" fill="#dbeafe" font-size="18" font-weight="600">Solve</text>
+  <g opacity="0.92" transform="translate(338 66)">
+    <g fill="none" stroke-width="4">
+      <path stroke="#f43f5e" d="M40 40L64 28L84 52L112 36L140 68L168 44L196 80L220 40L248 72" />
+      <path stroke="#a855f7" d="M40 104L72 84L104 112L140 96L172 132L204 100L236 148L268 124L300 168" />
+      <path stroke="#22d3ee" d="M40 168L72 144L100 184L140 160L172 196L204 168L236 208L268 192L300 224" />
+      <path stroke="#facc15" d="M40 232L68 204L96 244L128 216L160 256L196 224L224 260L260 236L292 276" />
+    </g>
+    <g opacity="0.75" fill="none" stroke="#38bdf8" stroke-width="2">
+      <path d="M32 36L48 80L24 108L52 136L28 164L64 184L44 220L80 236L60 272L104 288L92 332L140 320L136 360L184 352L180 400L224 388L228 432L272 420L284 464L320 444L344 488L380 468" />
+      <path d="M88 40L128 60L112 100L152 120L144 156L188 168L176 208L216 220L204 260L244 272L236 312L276 324L268 364L308 376L300 416L340 428L332 468L372 480" />
+      <path d="M140 52L172 80L156 120L188 144L176 188L212 208L200 248L236 260L224 300L260 312L248 352L284 364L272 404L308 416L296 456L332 468L320 508" />
+    </g>
+    <circle cx="64" cy="64" r="10" fill="#22d3ee" />
+    <circle cx="336" cy="356" r="12" fill="#f97316" />
+  </g>
+</svg>
