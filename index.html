@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voronoi Tessellation Maze</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Voronoi Tessellation Maze</h1>
+        <p class="description">A maze generated from a Voronoi diagram, forming a perfect tiling of irregular polygons.</p>
+
+        <fieldset class="controls" id="controls">
+            <div class="section-title">Maze Structure</div>
+
+            <div class="control-group">
+                <label for="cellCount">Number of Cells:</label>
+                <input type="range" id="cellCount" min="30" max="300" value="100" step="10" />
+                <span class="value" id="cellCountValue">100</span>
+            </div>
+
+            <div class="control-group">
+                <label for="canvasSize">Canvas Size (px):</label>
+                <input type="range" id="canvasSize" min="400" max="1000" value="800" step="50" />
+                <span class="value" id="canvasSizeValue">800</span>
+            </div>
+
+            <div class="control-group">
+                <label for="relaxation">Relaxation Iterations:</label>
+                <input type="range" id="relaxation" min="0" max="5" value="2" step="1" />
+                <span class="value" id="relaxationValue">2</span>
+            </div>
+
+            <div class="control-group">
+                <label for="passageWidth">Passage Width (%):</label>
+                <input type="range" id="passageWidth" min="10" max="90" value="50" step="5" />
+                <span class="value" id="passageWidthValue">50</span>
+            </div>
+
+            <div class="control-group">
+                <label for="seed">Random Seed:</label>
+                <input type="text" id="seed" placeholder="Leave blank for random" />
+                <span class="value seed-hint">deterministic</span>
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">Visual Appearance</div>
+
+            <div class="control-group">
+                <label for="cellStroke">Cell Outline (px):</label>
+                <input type="range" id="cellStroke" min="0.5" max="5" value="2" step="0.5" />
+                <span class="value" id="cellStrokeValue">2</span>
+            </div>
+
+            <div class="control-group">
+                <label for="markerSize">Marker Size (px):</label>
+                <input type="range" id="markerSize" min="5" max="25" value="12" step="1" />
+                <span class="value" id="markerSizeValue">12</span>
+            </div>
+
+            <div class="color-controls">
+                <div class="color-control">
+                    <label>Cell Fill</label>
+                    <input type="color" id="cellFill" value="#2a2a2a" />
+                </div>
+                <div class="color-control">
+                    <label>Cell Outline</label>
+                    <input type="color" id="cellOutline" value="#555555" />
+                </div>
+                <div class="color-control">
+                    <label>Start Marker</label>
+                    <input type="color" id="startColor" value="#2ecc71" />
+                </div>
+                <div class="color-control">
+                    <label>End Marker</label>
+                    <input type="color" id="endColor" value="#e74c3c" />
+                </div>
+                <div class="color-control">
+                    <label>Solution Path</label>
+                    <input type="color" id="solutionColor" value="#f1c40f" />
+                </div>
+                <div class="color-control">
+                    <label>Background</label>
+                    <input type="color" id="bgColor" value="#0a0a0a" />
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">Solution Animation</div>
+
+            <div class="control-group">
+                <label for="animationSpeed">Animation Delay (ms):</label>
+                <input type="range" id="animationSpeed" min="1" max="200" value="50" step="5" />
+                <span class="value" id="animationSpeedValue">50</span>
+            </div>
+
+            <div class="control-group">
+                <label for="pathThickness">Path Thickness (px):</label>
+                <input type="range" id="pathThickness" min="2" max="15" value="5" step="0.5" />
+                <span class="value" id="pathThicknessValue">5</span>
+            </div>
+
+            <div class="button-group">
+                <button id="generateBtn">Generate New Maze</button>
+                <button class="solve" id="solveBtn">Solve Maze</button>
+                <button class="clear" id="clearBtn">Clear Solution</button>
+            </div>
+        </fieldset>
+
+        <div id="canvasContainer">
+            <canvas id="mazeCanvas"></canvas>
+            <div id="overlay" class="overlay"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" integrity="sha512-pm8X5pQWcEhnkTGc3KlZvX2UmQ4PJ6oyb5acDytxqolwQDLENUXvxcZex7dqXZnpaZVwFpqiLtrJZ6XFojdrJQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="scripts/main.js"></script>
+</body>
+</html>
