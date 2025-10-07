@@ -17,6 +17,7 @@ let delaunay = null;
 let voronoi = null;
 let sites = [];
 let cells = [];
+let cellIdMap = new Map();
 let passages = new Set();
 let solutionPath = [];
 let animationFrameId = null;
@@ -122,16 +123,16 @@ function generateVoronoiTessellation() {
         })
         .filter(Boolean);
 
+    cellIdMap = new Map(cells.map((cell) => [cell.id, cell]));
+
     buildNeighborGraph();
 }
 
 function buildNeighborGraph() {
-    const cellMap = new Map(cells.map((c) => [c.id, c]));
-
     for (const cell of cells) {
         const neighborIds = delaunay.neighbors(cell.id);
         for (const neighborId of neighborIds) {
-            const neighborCell = cellMap.get(neighborId);
+            const neighborCell = cellIdMap.get(neighborId);
             if (!neighborCell || cell.neighbors.has(neighborId)) continue;
             const edge = getSharedEdge(cell, neighborCell);
             if (edge) {
@@ -204,22 +205,75 @@ function generateMazeKruskal() {
 }
 
 function determineStartEndCells() {
-    let maxDistance = -Infinity;
-    let pair = [cells[0], cells[0]];
+    if (!cells.length) {
+        startCell = null;
+        endCell = null;
+        return;
+    }
 
-    for (let i = 0; i < cells.length; i += 1) {
-        for (let j = i + 1; j < cells.length; j += 1) {
-            const dx = cells[i].site[0] - cells[j].site[0];
-            const dy = cells[i].site[1] - cells[j].site[1];
-            const distance = dx * dx + dy * dy;
+    if (cells.length === 1 || passages.size === 0) {
+        startCell = cells[0];
+        endCell = cells[cells.length - 1] || cells[0];
+        return;
+    }
+
+    const adjacency = new Map(cells.map((cell) => [cell.id, []]));
+
+    for (const passageKey of passages) {
+        const [id1, id2] = passageKey.split('-').map(Number);
+        const cell1 = cellIdMap.get(id1);
+        const cell2 = cellIdMap.get(id2);
+        if (!cell1 || !cell2) continue;
+
+        const weight = Math.hypot(cell1.site[0] - cell2.site[0], cell1.site[1] - cell2.site[1]);
+        adjacency.get(id1).push({ id: id2, weight });
+        adjacency.get(id2).push({ id: id1, weight });
+    }
+
+    const cellIds = [...adjacency.keys()];
+    if (!cellIds.length) {
+        startCell = cells[0];
+        endCell = cells[cells.length - 1] || cells[0];
+        return;
+    }
+
+    const firstId = cellIds[0];
+    const { farthestId: farthestFromFirst } = traverseForFarthest(firstId, adjacency);
+    const { farthestId } = traverseForFarthest(farthestFromFirst, adjacency);
+
+    startCell = cellIdMap.get(farthestFromFirst) || cells[0];
+    endCell = cellIdMap.get(farthestId) || cells[cells.length - 1] || cells[0];
+
+    if (startCell && endCell && startCell.id === endCell.id && cells.length > 1) {
+        const alternativeId = cellIds.find((id) => id !== startCell.id);
+        if (alternativeId !== undefined) {
+            endCell = cellIdMap.get(alternativeId) || endCell;
+        }
+    }
+}
+
+function traverseForFarthest(startId, adjacency) {
+    const stack = [[startId, -1]];
+    const distances = new Map([[startId, 0]]);
+    let farthestId = startId;
+    let maxDistance = 0;
+
+    while (stack.length > 0) {
+        const [currentId, parentId] = stack.pop();
+        const neighbors = adjacency.get(currentId) || [];
+        for (const { id: neighborId, weight } of neighbors) {
+            if (neighborId === parentId) continue;
+            const distance = (distances.get(currentId) || 0) + weight;
+            distances.set(neighborId, distance);
             if (distance > maxDistance) {
                 maxDistance = distance;
-                pair = [cells[i], cells[j]];
+                farthestId = neighborId;
             }
+            stack.push([neighborId, currentId]);
         }
     }
 
-    [startCell, endCell] = pair;
+    return { farthestId, maxDistance, distances };
 }
 
 function getDrawSettings() {
@@ -268,7 +322,7 @@ function drawMaze(pathProgress = -1) {
 
     for (const passageKey of passages) {
         const [id1, id2] = passageKey.split('-').map(Number);
-        const cell1 = cells.find((c) => c.id === id1);
+        const cell1 = cellIdMap.get(id1);
         const edge = cell1?.neighbors.get(id2);
         if (!edge) continue;
 
@@ -370,8 +424,6 @@ function findPath() {
 
     const queue = [[startCell]];
     const visited = new Set([startCell.id]);
-    const cellMap = new Map(cells.map((c) => [c.id, c]));
-
     while (queue.length > 0) {
         const path = queue.shift();
         const current = path[path.length - 1];
@@ -382,7 +434,10 @@ function findPath() {
             const passageKey = `${Math.min(current.id, neighborId)}-${Math.max(current.id, neighborId)}`;
             if (!passages.has(passageKey) || visited.has(neighborId)) continue;
             visited.add(neighborId);
-            queue.push([...path, cellMap.get(neighborId)]);
+            const neighborCell = cellIdMap.get(neighborId);
+            if (neighborCell) {
+                queue.push([...path, neighborCell]);
+            }
         }
     }
 
