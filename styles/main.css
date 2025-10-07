@@ -10,6 +10,8 @@
     --accent-blue-dark: #2980b9;
     --accent-orange: #e67e22;
     --accent-orange-dark: #d35400;
+    --accent-purple: #9b59b6;
+    --accent-purple-dark: #8e44ad;
 }
 
 * {
@@ -183,6 +185,14 @@ button.solve {
 
 button.solve:hover {
     background: var(--accent-blue-dark);
+}
+
+button.export {
+    background: var(--accent-purple);
+}
+
+button.export:hover {
+    background: var(--accent-purple-dark);
 }
 
 button.clear {

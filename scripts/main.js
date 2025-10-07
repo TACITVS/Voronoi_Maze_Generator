@@ -5,6 +5,7 @@ const overlay = document.getElementById('overlay');
 const generateBtn = document.getElementById('generateBtn');
 const solveBtn = document.getElementById('solveBtn');
 const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
 
 const structuralParams = ['cellCount', 'canvasSize', 'relaxation'];
 const visualParams = ['passageWidth', 'cellStroke', 'markerSize', 'pathThickness'];
@@ -20,12 +21,25 @@ let cells = [];
 let cellMap = new Map();
 let passages = new Set();
 let solutionPath = [];
+let cellMap = new Map();
 let animationFrameId = null;
 let lastFrameTime = 0;
 let isSolving = false;
+let isGenerating = false;
+let pendingGeneration = false;
 let startCell = null;
 let endCell = null;
 let rng = Math.random;
+
+function updateInteractionState() {
+    const disableInputs = isGenerating || isSolving;
+    controls.disabled = disableInputs;
+    const hasMaze = cells.length > 0;
+    generateBtn.disabled = disableInputs;
+    solveBtn.disabled = disableInputs || !hasMaze;
+    exportBtn.disabled = disableInputs || !hasMaze;
+    clearBtn.disabled = disableInputs || solutionPath.length === 0;
+}
 
 class Cell {
     constructor(id, site, polygon) {
@@ -51,6 +65,42 @@ function showOverlay(message) {
 
 function hideOverlay() {
     overlay.classList.remove('visible');
+}
+
+function downloadMazeImage() {
+    if (!cells.length) {
+        showOverlay('Generate a maze first!');
+        setTimeout(hideOverlay, 1800);
+        return;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `voronoi-maze-${timestamp}.png`;
+
+    const triggerDownload = (url, revoke = false) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if (revoke) {
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    if (canvas.toBlob) {
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                triggerDownload(url, true);
+            } else {
+                triggerDownload(canvas.toDataURL('image/png'));
+            }
+        }, 'image/png');
+    } else {
+        triggerDownload(canvas.toDataURL('image/png'));
+    }
 }
 
 function quantizePoint(point) {
@@ -368,12 +418,12 @@ function findPath() {
     if (!startCell || !endCell) return [];
 
     const queue = [[startCell]];
-    let index = 0;
+    let front = 0;
     const visited = new Set([startCell.id]);
 
-    while (index < queue.length) {
-        const path = queue[index];
-        index += 1;
+    while (front < queue.length) {
+        const path = queue[front];
+        front += 1;
         const current = path[path.length - 1];
 
         if (current.id === endCell.id) return path;
@@ -383,8 +433,9 @@ function findPath() {
             if (!passages.has(passageKey) || visited.has(neighborId)) continue;
             visited.add(neighborId);
             const neighborCell = cellMap.get(neighborId);
-            if (!neighborCell) continue;
-            queue.push([...path, neighborCell]);
+            if (neighborCell) {
+                queue.push([...path, neighborCell]);
+            }
         }
     }
 
@@ -418,19 +469,19 @@ function animateSolution() {
 
 function finishSolving() {
     isSolving = false;
-    controls.disabled = false;
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
     lastFrameTime = 0;
     drawMaze(solutionPath.length);
+    updateInteractionState();
 }
 
 function solveMaze() {
-    if (isSolving) return;
+    if (isSolving || isGenerating) return;
 
     clearSolution(true);
     isSolving = true;
-    controls.disabled = true;
+    updateInteractionState();
 
     solutionPath = findPath();
 
@@ -438,7 +489,7 @@ function solveMaze() {
         showOverlay('No solution found!');
         setTimeout(hideOverlay, 2000);
         isSolving = false;
-        controls.disabled = false;
+        updateInteractionState();
         return;
     }
 
@@ -453,18 +504,23 @@ function clearSolution(solving = false) {
     lastFrameTime = 0;
     solutionPath = [];
     isSolving = false;
-    controls.disabled = false;
     if (!solving) {
         drawMaze();
     }
+    updateInteractionState();
 }
 
 function generateMaze() {
-    if (isSolving) {
-        clearSolution(true);
+    if (isGenerating) {
+        pendingGeneration = true;
+        return;
     }
 
+    pendingGeneration = false;
+    isGenerating = true;
+    updateInteractionState();
     showOverlay('Generating...');
+
     reseedRandom();
     clearSolution(true);
 
@@ -472,7 +528,14 @@ function generateMaze() {
         generateVoronoiTessellation();
         generateMazeKruskal();
         drawMaze();
+        isGenerating = false;
         hideOverlay();
+        updateInteractionState();
+
+        if (pendingGeneration) {
+            pendingGeneration = false;
+            generateMaze();
+        }
     }, 10);
 }
 
@@ -509,6 +572,7 @@ function setupControls() {
     generateBtn.addEventListener('click', generateMaze);
     solveBtn.addEventListener('click', solveMaze);
     clearBtn.addEventListener('click', () => clearSolution());
+    exportBtn.addEventListener('click', downloadMazeImage);
 }
 
 function buildPassageGraph() {
@@ -565,5 +629,6 @@ window.addEventListener(
     }, 200)
 );
 
+updateInteractionState();
 setupControls();
 generateMaze();
