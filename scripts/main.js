@@ -19,6 +19,7 @@ let sites = [];
 let cells = [];
 let passages = new Set();
 let solutionPath = [];
+let cellMap = new Map();
 let animationFrameId = null;
 let lastFrameTime = 0;
 let isSolving = false;
@@ -122,12 +123,12 @@ function generateVoronoiTessellation() {
         })
         .filter(Boolean);
 
+    cellMap = new Map(cells.map((cell) => [cell.id, cell]));
+
     buildNeighborGraph();
 }
 
 function buildNeighborGraph() {
-    const cellMap = new Map(cells.map((c) => [c.id, c]));
-
     for (const cell of cells) {
         const neighborIds = delaunay.neighbors(cell.id);
         for (const neighborId of neighborIds) {
@@ -268,7 +269,7 @@ function drawMaze(pathProgress = -1) {
 
     for (const passageKey of passages) {
         const [id1, id2] = passageKey.split('-').map(Number);
-        const cell1 = cells.find((c) => c.id === id1);
+        const cell1 = cellMap.get(id1);
         const edge = cell1?.neighbors.get(id2);
         if (!edge) continue;
 
@@ -369,11 +370,12 @@ function findPath() {
     if (!startCell || !endCell) return [];
 
     const queue = [[startCell]];
+    let front = 0;
     const visited = new Set([startCell.id]);
-    const cellMap = new Map(cells.map((c) => [c.id, c]));
 
-    while (queue.length > 0) {
-        const path = queue.shift();
+    while (front < queue.length) {
+        const path = queue[front];
+        front += 1;
         const current = path[path.length - 1];
 
         if (current.id === endCell.id) return path;
@@ -382,7 +384,10 @@ function findPath() {
             const passageKey = `${Math.min(current.id, neighborId)}-${Math.max(current.id, neighborId)}`;
             if (!passages.has(passageKey) || visited.has(neighborId)) continue;
             visited.add(neighborId);
-            queue.push([...path, cellMap.get(neighborId)]);
+            const neighborCell = cellMap.get(neighborId);
+            if (neighborCell) {
+                queue.push([...path, neighborCell]);
+            }
         }
     }
 
