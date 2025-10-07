@@ -9,6 +9,7 @@ A modern single-page Voronoi maze generator that uses D3's Delaunay/Voronoi util
 - Rich styling controls for cell outlines, fills, markers, and background colors
 - Animated breadth-first search solver with smooth spline rendering
 - Responsive layout with debounced UI updates and device-pixel-aware canvas drawing
+- One-click PNG export of the current maze view
 
 ## Installation
 
