@@ -18,6 +18,7 @@ let delaunay = null;
 let voronoi = null;
 let sites = [];
 let cells = [];
+let cellMap = new Map();
 let passages = new Set();
 let solutionPath = [];
 let cellMap = new Map();
@@ -173,7 +174,6 @@ function generateVoronoiTessellation() {
         .filter(Boolean);
 
     cellMap = new Map(cells.map((cell) => [cell.id, cell]));
-
     buildNeighborGraph();
 }
 
@@ -254,22 +254,21 @@ function generateMazeKruskal() {
 }
 
 function determineStartEndCells() {
-    let maxDistance = -Infinity;
-    let pair = [cells[0], cells[0]];
-
-    for (let i = 0; i < cells.length; i += 1) {
-        for (let j = i + 1; j < cells.length; j += 1) {
-            const dx = cells[i].site[0] - cells[j].site[0];
-            const dy = cells[i].site[1] - cells[j].site[1];
-            const distance = dx * dx + dy * dy;
-            if (distance > maxDistance) {
-                maxDistance = distance;
-                pair = [cells[i], cells[j]];
-            }
-        }
+    if (!cells.length) {
+        startCell = null;
+        endCell = null;
+        return;
     }
 
-    [startCell, endCell] = pair;
+    const passageGraph = buildPassageGraph();
+    if (!passageGraph.size) {
+        [startCell, endCell] = [cells[0], cells[0]];
+        return;
+    }
+
+    const [{ node: treeStart }, { node: treeEnd }] = findMazeDiameter(passageGraph);
+    startCell = cellMap.get(treeStart) ?? cells[0];
+    endCell = cellMap.get(treeEnd) ?? startCell;
 }
 
 function getDrawSettings() {
@@ -574,6 +573,52 @@ function setupControls() {
     solveBtn.addEventListener('click', solveMaze);
     clearBtn.addEventListener('click', () => clearSolution());
     exportBtn.addEventListener('click', downloadMazeImage);
+}
+
+function buildPassageGraph() {
+    const graph = new Map();
+    for (const cell of cells) {
+        graph.set(cell.id, []);
+    }
+
+    for (const passageKey of passages) {
+        const [id1, id2] = passageKey.split('-').map(Number);
+        graph.get(id1)?.push(id2);
+        graph.get(id2)?.push(id1);
+    }
+
+    return graph;
+}
+
+function findMazeDiameter(graph) {
+    const first = bfsFarthest(cells[0].id, graph);
+    const second = bfsFarthest(first.node, graph);
+    return [first, second];
+}
+
+function bfsFarthest(startId, graph) {
+    const visited = new Set([startId]);
+    const queue = [[startId, 0]];
+    let index = 0;
+    let farthest = { node: startId, distance: 0 };
+
+    while (index < queue.length) {
+        const [current, distance] = queue[index];
+        index += 1;
+
+        if (distance > farthest.distance) {
+            farthest = { node: current, distance };
+        }
+
+        const neighbors = graph.get(current) ?? [];
+        for (const neighbor of neighbors) {
+            if (visited.has(neighbor)) continue;
+            visited.add(neighbor);
+            queue.push([neighbor, distance + 1]);
+        }
+    }
+
+    return farthest;
 }
 
 window.addEventListener(
