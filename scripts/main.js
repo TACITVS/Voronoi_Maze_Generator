@@ -24,9 +24,21 @@ let cellMap = new Map();
 let animationFrameId = null;
 let lastFrameTime = 0;
 let isSolving = false;
+let isGenerating = false;
+let pendingGeneration = false;
 let startCell = null;
 let endCell = null;
 let rng = Math.random;
+
+function updateInteractionState() {
+    const disableInputs = isGenerating || isSolving;
+    controls.disabled = disableInputs;
+    const hasMaze = cells.length > 0;
+    generateBtn.disabled = disableInputs;
+    solveBtn.disabled = disableInputs || !hasMaze;
+    exportBtn.disabled = disableInputs || !hasMaze;
+    clearBtn.disabled = disableInputs || solutionPath.length === 0;
+}
 
 class Cell {
     constructor(id, site, polygon) {
@@ -458,19 +470,19 @@ function animateSolution() {
 
 function finishSolving() {
     isSolving = false;
-    controls.disabled = false;
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
     lastFrameTime = 0;
     drawMaze(solutionPath.length);
+    updateInteractionState();
 }
 
 function solveMaze() {
-    if (isSolving) return;
+    if (isSolving || isGenerating) return;
 
     clearSolution(true);
     isSolving = true;
-    controls.disabled = true;
+    updateInteractionState();
 
     solutionPath = findPath();
 
@@ -478,7 +490,7 @@ function solveMaze() {
         showOverlay('No solution found!');
         setTimeout(hideOverlay, 2000);
         isSolving = false;
-        controls.disabled = false;
+        updateInteractionState();
         return;
     }
 
@@ -493,18 +505,23 @@ function clearSolution(solving = false) {
     lastFrameTime = 0;
     solutionPath = [];
     isSolving = false;
-    controls.disabled = false;
     if (!solving) {
         drawMaze();
     }
+    updateInteractionState();
 }
 
 function generateMaze() {
-    if (isSolving) {
-        clearSolution(true);
+    if (isGenerating) {
+        pendingGeneration = true;
+        return;
     }
 
+    pendingGeneration = false;
+    isGenerating = true;
+    updateInteractionState();
     showOverlay('Generating...');
+
     reseedRandom();
     clearSolution(true);
 
@@ -512,7 +529,14 @@ function generateMaze() {
         generateVoronoiTessellation();
         generateMazeKruskal();
         drawMaze();
+        isGenerating = false;
         hideOverlay();
+        updateInteractionState();
+
+        if (pendingGeneration) {
+            pendingGeneration = false;
+            generateMaze();
+        }
     }, 10);
 }
 
@@ -560,5 +584,6 @@ window.addEventListener(
     }, 200)
 );
 
+updateInteractionState();
 setupControls();
 generateMaze();
