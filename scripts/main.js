@@ -5,6 +5,7 @@ const overlay = document.getElementById('overlay');
 const generateBtn = document.getElementById('generateBtn');
 const solveBtn = document.getElementById('solveBtn');
 const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
 
 const structuralParams = ['cellCount', 'canvasSize', 'relaxation'];
 const visualParams = ['passageWidth', 'cellStroke', 'markerSize', 'pathThickness'];
@@ -51,6 +52,42 @@ function showOverlay(message) {
 
 function hideOverlay() {
     overlay.classList.remove('visible');
+}
+
+function downloadMazeImage() {
+    if (!cells.length) {
+        showOverlay('Generate a maze first!');
+        setTimeout(hideOverlay, 1800);
+        return;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `voronoi-maze-${timestamp}.png`;
+
+    const triggerDownload = (url, revoke = false) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if (revoke) {
+            URL.revokeObjectURL(url);
+        }
+    };
+
+    if (canvas.toBlob) {
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                triggerDownload(url, true);
+            } else {
+                triggerDownload(canvas.toDataURL('image/png'));
+            }
+        }, 'image/png');
+    } else {
+        triggerDownload(canvas.toDataURL('image/png'));
+    }
 }
 
 function quantizePoint(point) {
@@ -512,6 +549,7 @@ function setupControls() {
     generateBtn.addEventListener('click', generateMaze);
     solveBtn.addEventListener('click', solveMaze);
     clearBtn.addEventListener('click', () => clearSolution());
+    exportBtn.addEventListener('click', downloadMazeImage);
 }
 
 window.addEventListener(
