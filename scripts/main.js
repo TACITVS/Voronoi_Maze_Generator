@@ -181,7 +181,7 @@ function buildNeighborGraph() {
     for (const cell of cells) {
         const neighborIds = delaunay.neighbors(cell.id);
         for (const neighborId of neighborIds) {
-            const neighborCell = cellMap.get(neighborId);
+            const neighborCell = cellIdMap.get(neighborId);
             if (!neighborCell || cell.neighbors.has(neighborId)) continue;
             const edge = getSharedEdge(cell, neighborCell);
             if (edge) {
